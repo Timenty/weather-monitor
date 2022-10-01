@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Monitor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <style>
+    canvas{
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+    }
+    </style>
+</head>
+<body>
+  <div class="chart-container" position: relative; height:350px; width:100%">
+    <canvas id="Chart" width="400" height="400"></canvas>
+  </div>
+<br>
+<br>
+<script>
+const Tvalues = [];
+const Hvalues = [];
+const timeStamp = [];
+function showGraph()
+{
+    const ctx = document.getElementById("Chart").getContext('2d');
+    const Chart2 = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: timeStamp,  //Bottom Labeling
+            datasets: [
+            {
+                label: "Temperature",
+                fill: false,  //Try with true
+                backgroundColor: 'rgba( 243, 156, 18 , 1)', //Dot marker color
+                borderColor: 'rgba( 243, 156, 18 , 1)', //Graph Line Color
+                data: Tvalues,
+            },
+            {
+                label: "Humidity",
+                fill: false,  //Try with true
+                backgroundColor: 'rgba(156, 18, 243 , 1)', //Dot marker color
+                borderColor: 'rgba(156, 18, 243 , 1)', //Graph Line Color
+                data: Hvalues,
+            }],
+        },
+        options: {
+            title: {
+                    display: true,
+                    text: "ADC Voltage"
+                },
+            maintainAspectRatio: false,
+            elements: {
+            line: {
+                    tension: 0.5 //Smoothening (Curved) of data lines
+                }
+            },
+            scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero:true
+                        }
+                    }]
+            }
+        }
+    });
+}
+
+  //On Page load show graphs
+  window.onload = function() {
+    getData();
+  };
+
+  function getData() {
+    fetch('/api/show-weather', {method: 'GET'})
+      .then(response => response.json())
+      .then(data => {
+        data.forEach(({ temperature, humidity, date, device }) => {
+          let time = new Date(date);
+          time = time.toLocaleDateString() + ' ' + time.toLocaleTimeString();
+          timeStamp.push(time);
+          Tvalues.push(temperature);
+          Hvalues.push(humidity);
+        })
+        showGraph();
+      })
+      .catch(err => console.error(err));
+  }
+</script>
+</body>
+</html>
